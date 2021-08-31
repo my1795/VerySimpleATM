@@ -13,12 +13,11 @@
     </Appenders>
 
     <Loggers>
-        <AsyncLogger name="com.neued.atm" level="all"
+        <AsyncLogger name="com.neueda.atm" level="all"
                      additivity="false">
             <AppenderRef ref="ConsoleAppender" />
         </AsyncLogger>
-
-        <Root level="info">
+        <Root level="all">
             <AppenderRef ref="ConsoleAppender" />
         </Root>
     </Loggers>
