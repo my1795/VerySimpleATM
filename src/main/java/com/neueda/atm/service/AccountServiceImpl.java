@@ -1,5 +1,7 @@
 package com.neueda.atm.service;
 
+import com.google.common.base.Preconditions;
+import com.neueda.atm.common.constant.RequestType;
 import com.neueda.atm.entity.AccountEntity;
 import com.neueda.atm.entity.Bank;
 import com.neueda.atm.entity.BankNote;
@@ -8,10 +10,10 @@ import com.neueda.atm.repository.BankRepository;
 import com.neueda.atm.resource.AccountRequest;
 import com.neueda.atm.resource.AccountResponse;
 import com.neueda.atm.util.BalanceUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import java.util.Map;
@@ -19,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class AccountServiceImpl implements AccountService{
-
+    private static String REQUEST_TYPE_ERROR = "Incompatible Request Type";
     AccountRepository accountRepository;
 
     BankRepository bankRepository;
@@ -33,13 +35,14 @@ public class AccountServiceImpl implements AccountService{
     }
 
     @Override
-    public AccountResponse getBalance(AccountRequest accountRequest) {
-
+    public AccountResponse checkBalance(AccountRequest accountRequest) {
+        accountRequest.getRequestType().equals(RequestType.BALANCE_CHECK);
+        Preconditions.checkArgument(accountRequest.getRequestType().equals(RequestType.BALANCE_CHECK) ,REQUEST_TYPE_ERROR );
         AccountEntity accountEntity =accountRepository.findAccountEntityByAccountNumberEquals(accountRequest.getAccountNumber());
         basicAccountResourceCheck(accountRequest, accountEntity);
         AccountResponse accountResponse = new AccountResponse();
         accountResponse.setAccountNumber(accountEntity.getAccountNumber());
-        accountResponse.setRequestType("CHECK_BALANCE");
+        accountResponse.setRequestType(RequestType.BALANCE_CHECK);
         accountResponse.setRemainingBalance(accountEntity.getBalance());
         return accountResponse;
     }
@@ -47,7 +50,7 @@ public class AccountServiceImpl implements AccountService{
     @Override
     @Transactional
     public AccountResponse withdraw(AccountRequest accountRequest) throws Exception {
-
+        Preconditions.checkArgument(accountRequest.getRequestType().equals(RequestType.WITHDRAW) ,REQUEST_TYPE_ERROR );
         validateWithdrawRequest(accountRequest);
 
         AccountResponse accountResponse = new AccountResponse();
@@ -64,8 +67,8 @@ public class AccountServiceImpl implements AccountService{
             }
             else {
                 int currentCount = bankBalance.get(bankNote);
-                bankBalance.replace(bankNote, currentCount- bankNote.getAmount());
-                withdrawAmount.getAndAdd(bankBalance.get(bankNote) * bankNote.getAmount());
+                bankBalance.replace(bankNote, currentCount- count);
+                withdrawAmount.getAndAdd(count * bankNote.getAmount());
             }
         });
         bank.setBalanceMap(bankBalance);
@@ -73,7 +76,7 @@ public class AccountServiceImpl implements AccountService{
         accountEntity.setBalance(accountEntity.getBalance() - withdrawAmount.get());
 
         accountResponse.setRemainingBalance(accountEntity.getBalance());
-        accountResponse.setRequestType("Withdraw");
+        accountResponse.setRequestType(RequestType.WITHDRAW);
         accountResponse.setAccountNumber(accountEntity.getAccountNumber());
         return accountResponse;
     }

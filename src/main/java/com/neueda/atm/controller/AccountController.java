@@ -1,6 +1,7 @@
 package com.neueda.atm.controller;
 
 import com.neueda.atm.common.constant.APIPathValues;
+import com.neueda.atm.common.constant.RequestType;
 import com.neueda.atm.resource.AccountRequest;
 import com.neueda.atm.resource.AccountResponse;
 import com.neueda.atm.service.AccountService;
@@ -12,7 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotBlank;
-import java.io.UnsupportedEncodingException;
+import javax.validation.constraints.NotNull;
+
 @RestController
 @RequestMapping(APIPathValues.REQUEST_ACCOUNTS_BASE_URL)
 public class AccountController {
@@ -26,27 +28,27 @@ public class AccountController {
 
     @ApiOperation(value = "Check Balance of an account" , response = AccountResponse.class)
     @RequestMapping(path = "/queryBalance" , method = RequestMethod.GET)
-    public ResponseEntity<AccountResponse> getBalance(
-            @ApiParam(value = "Account Number", required = true) @NotBlank @PathVariable("accountNumber") long accountNumber,
-            @ApiParam("Pin of the user.") @RequestParam(value = "pin", required = false) String pin,
-            @ApiParam("Request Type.") @RequestParam(value = "requestType", required = false) String requestType
+    public ResponseEntity<AccountResponse> checkBalance(
+            @ApiParam(value = "Account Number", required = true) @NotNull @PathVariable("accountNumber") @NotBlank Long accountNumber,
+            @ApiParam("Pin of the user.") @NotBlank @NotNull  @RequestParam(value = "pin") Integer pin,
+            @ApiParam("Request Type.") @NotBlank  @NotNull  @RequestParam(value = "requestType") RequestType requestType
 
     ){
         AccountRequest accountRequest = new AccountRequest();
         accountRequest.setAccountNumber(accountNumber);
         accountRequest.setRequestType(requestType);
-        AccountResponse accountResponse = accountService.getBalance(accountRequest);
+        accountRequest.setPin(pin);
+        AccountResponse accountResponse = accountService.checkBalance(accountRequest);
         return new ResponseEntity<AccountResponse>(accountResponse, HttpStatus.OK);
     }
     @ApiOperation(value = "Withdraw from an account an account" , response = AccountResponse.class)
     @RequestMapping(path = "/withdraw" , method = RequestMethod.POST)
     public ResponseEntity<AccountResponse> withdraw(
-            @ApiParam(value = "Account Number", required = true) @NotBlank @PathVariable("accountNumber") long accountNumber,
-            @ApiParam(value = "Withdraw reuqest resource")
-            @RequestBody(required = true) AccountRequest accountRequest
+            @ApiParam(value = "Withdraw request resource")
+            @RequestBody(required = true) @NotBlank  @NotNull AccountRequest accountRequest
 
     ) throws Exception {
         AccountResponse accountResponse = accountService.withdraw(accountRequest);
-        return new ResponseEntity<AccountResponse>(accountResponse, HttpStatus.OK);
+        return new ResponseEntity<AccountResponse>(accountResponse, HttpStatus.ACCEPTED);
     }
 }
