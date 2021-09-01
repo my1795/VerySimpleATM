@@ -1,6 +1,8 @@
 package com.neueda.atm.entity;
 
+import org.hibernate.annotations.OptimisticLock;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.jpa.repository.Lock;
 
 import javax.persistence.*;
 import java.util.HashMap;
