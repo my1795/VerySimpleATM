@@ -25,7 +25,7 @@ public class AccountController {
     }
 
     @ApiOperation(value = "Check Balance of an account" , response = AccountResponse.class)
-    @RequestMapping(path = "/" , method = RequestMethod.GET)
+    @RequestMapping(path = "/queryBalance" , method = RequestMethod.GET)
     public ResponseEntity<AccountResponse> getBalance(
             @ApiParam(value = "Account Number", required = true) @NotBlank @PathVariable("accountNumber") long accountNumber,
             @ApiParam("Pin of the user.") @RequestParam(value = "pin", required = false) String pin,
@@ -45,7 +45,7 @@ public class AccountController {
             @ApiParam(value = "Withdraw reuqest resource")
             @RequestBody(required = true) AccountRequest accountRequest
 
-    ){
+    ) throws Exception {
         AccountResponse accountResponse = accountService.withdraw(accountRequest);
         return new ResponseEntity<AccountResponse>(accountResponse, HttpStatus.OK);
     }
