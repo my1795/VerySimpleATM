@@ -9,12 +9,15 @@ import com.neueda.atm.repository.AccountRepository;
 import com.neueda.atm.repository.BankRepository;
 import com.neueda.atm.resource.AccountRequest;
 import com.neueda.atm.resource.AccountResponse;
+import com.neueda.atm.resource.BankNoteResource;
 import com.neueda.atm.util.BalanceUtil;
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,11 +42,12 @@ public class AccountServiceImpl implements AccountService {
         accountRequest.getRequestType().equals(RequestType.BALANCE_CHECK);
         Preconditions.checkArgument(accountRequest.getRequestType().equals(RequestType.BALANCE_CHECK), REQUEST_TYPE_ERROR);
         AccountEntity accountEntity = accountRepository.findAccountEntityByAccountNumberEquals(accountRequest.getAccountNumber());
-        basicAccountResourceCheck(accountRequest, accountEntity);
+        validateBalanceCheckRequest(accountRequest);
         AccountResponse accountResponse = new AccountResponse();
         accountResponse.setAccountNumber(accountEntity.getAccountNumber());
         accountResponse.setRequestType(RequestType.BALANCE_CHECK);
-        accountResponse.setRemainingBalance(accountEntity.getBalance());
+        accountResponse.setBalance(accountEntity.getBalance());
+        accountResponse.setOverdraft(accountEntity.getOverdraft());
         return accountResponse;
     }
 
@@ -71,19 +75,34 @@ public class AccountServiceImpl implements AccountService {
                 }
             });
             bank.setBalanceMap(bankBalance);
+            if(accountEntity.getBalance() >= withdrawAmount.get()){
+                accountEntity.setBalance(accountEntity.getBalance() - withdrawAmount.get());
+            }
+            else {
+                double deductedFromOverdraft = withdrawAmount.get() - accountEntity.getBalance();
+                accountEntity.setBalance(0);
+                accountEntity.setOverdraft(accountEntity.getOverdraft()-deductedFromOverdraft);
+            }
 
-            accountEntity.setBalance(accountEntity.getBalance() - withdrawAmount.get());
 
             accountResponse.setRemainingBalance(accountEntity.getBalance());
+            accountResponse.setOverdraft(accountEntity.getOverdraft());
             accountResponse.setRequestType(RequestType.WITHDRAW);
             accountResponse.setAccountNumber(accountEntity.getAccountNumber());
+            accountResponse.setWithdrawalBankNotes(new ArrayList<>());
+            withdrawAmountMap.forEach(((bankNote, count) -> {
+                BankNoteResource bankNoteResource = new BankNoteResource();
+                bankNoteResource.setBankNoteAmount(bankNote.getAmount());
+                bankNoteResource.setBankNoteCount(count);
+                accountResponse.getWithdrawalBankNotes().add(bankNoteResource);
+            }));
         }
         return accountResponse;
     }
 
     @Override
     public AccountResponse deposit(AccountRequest accountRequest) {
-        return null;
+        throw new NotImplementedException();
     }
 
     private void validateBalanceCheckRequest(AccountRequest accountRequest) {

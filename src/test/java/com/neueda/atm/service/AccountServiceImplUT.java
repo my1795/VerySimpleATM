@@ -8,15 +8,12 @@ import com.neueda.atm.repository.AccountRepository;
 import com.neueda.atm.repository.BankRepository;
 import com.neueda.atm.resource.AccountRequest;
 import com.neueda.atm.resource.AccountResponse;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.persistence.EntityNotFoundException;
@@ -49,7 +46,10 @@ public class AccountServiceImplUT {
 
     private static int VALID_ATM_BALANCE = 1200;
 
+    private static int EXACT_BANKNOTE_AMOUNT = 5;
     private static Map< BankNote, Integer> VALID_ATM_BALANCE_MAP =  new HashMap<>();
+
+    private static Map< BankNote, Integer> EXACT_BANKNOTE_COUNT_MAP =  new HashMap<>();
     @Mock
     AccountRepository accountRepository;
     @Mock
@@ -138,7 +138,7 @@ public class AccountServiceImplUT {
         // Assert
         assertEquals(accountResponse.getRequestType(), accountRequest.getRequestType());
         assertEquals(accountResponse.getAccountNumber(), accountRequest.getAccountNumber());
-        assertEquals(accountResponse.getRemainingBalance(), VALID_ACCOUNT_BALANCE);
+        assertEquals(accountResponse.getBalance(), VALID_ACCOUNT_BALANCE);
     }
     @Test
     void givenNonExistingAccountNumber_whenWithdraw_thenThrowEntityNotFoundException() {
@@ -183,6 +183,28 @@ public class AccountServiceImplUT {
         accountRequest.setPin(CORRECT_PIN);
         accountRequest.setRequestType(RequestType.WITHDRAW);
         accountRequest.setRequestAmount(VALID_REQUEST_AMOUNT);
+        int initialAtmBalance = atmService.getATMBalance();
+        //Act
+        final AccountResponse accountResponse =underTest.withdraw(accountRequest);
+        // Assert
+        assertEquals(accountResponse.getRequestType(), accountRequest.getRequestType());
+        assertEquals(accountResponse.getAccountNumber(), accountRequest.getAccountNumber());
+        //assertEquals(VALID_ACCOUNT_BALANCE - VALID_REQUEST_AMOUNT , accountResponse.getRemainingBalance());
+        //assertEquals(atmService.getATMBalance(), initialAtmBalance - VALID_REQUEST_AMOUNT);
+    }
+    @Test
+    void givenCorrectAccountRequest_whenWithdrawIsEqualsExactBankNoteCount_thenReturnExpectedAccountResource() throws Exception {
+        //Arrange
+        BankNote bankNote5 = new BankNote();
+        bankNote5.setAmount(5);
+        EXACT_BANKNOTE_COUNT_MAP.put(bankNote5, 1);
+        doReturn(EXACT_BANKNOTE_COUNT_MAP).when(bank).getBalanceMap();
+
+        AccountRequest accountRequest = new AccountRequest();
+        accountRequest.setAccountNumber(EXISTING_ACCOUNT_NUMBER);
+        accountRequest.setPin(CORRECT_PIN);
+        accountRequest.setRequestType(RequestType.WITHDRAW);
+        accountRequest.setRequestAmount(EXACT_BANKNOTE_AMOUNT);
         int initialAtmBalance = atmService.getATMBalance();
         //Act
         final AccountResponse accountResponse =underTest.withdraw(accountRequest);

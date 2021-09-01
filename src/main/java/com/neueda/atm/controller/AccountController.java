@@ -30,13 +30,12 @@ public class AccountController {
     @RequestMapping(path = "/queryBalance" , method = RequestMethod.GET)
     public ResponseEntity<AccountResponse> checkBalance(
             @ApiParam(value = "Account Number", required = true) @NotNull @PathVariable("accountNumber") @NotBlank Long accountNumber,
-            @ApiParam("Pin of the user.") @NotBlank @NotNull  @RequestParam(value = "pin") Integer pin,
-            @ApiParam("Request Type.") @NotBlank  @NotNull  @RequestParam(value = "requestType") RequestType requestType
+            @ApiParam("Pin of the user.") @NotBlank @NotNull  @RequestParam(value = "pin") Integer pin
 
     ){
         AccountRequest accountRequest = new AccountRequest();
         accountRequest.setAccountNumber(accountNumber);
-        accountRequest.setRequestType(requestType);
+        accountRequest.setRequestType(RequestType.BALANCE_CHECK);
         accountRequest.setPin(pin);
         AccountResponse accountResponse = accountService.checkBalance(accountRequest);
         return new ResponseEntity<AccountResponse>(accountResponse, HttpStatus.OK);
