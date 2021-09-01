@@ -34,7 +34,7 @@ public class AccountControllerIT {
     void givenEmptyAccountNumberPathVariable_whenCheckBalance_thenThrowException() {
         //Arrange
         //Act
-        final Executable executable = () -> underTest.checkBalance(null, CORRECT_PIN, RequestType.BALANCE_CHECK);
+        final Executable executable = () -> underTest.checkBalance(null, CORRECT_PIN);
         // Assert
         assertThrows(Exception.class, executable);
     }
