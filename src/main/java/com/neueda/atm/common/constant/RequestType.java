@@ -11,17 +11,17 @@ public enum RequestType {
 
     private final String name;
 
-    RequestType(String name){
+    RequestType(String name) {
         this.name = name;
     }
 
-    public String getName(){
+    public String getName() {
         return name;
     }
 
-    public static RequestType getByName(String aName){
-        for(RequestType current: RequestType.values()){
-            if(current.getName().equalsIgnoreCase(aName.trim())){
+    public static RequestType getByName(String aName) {
+        for (RequestType current : RequestType.values()) {
+            if (current.getName().equalsIgnoreCase(aName.trim())) {
                 return current;
             }
         }

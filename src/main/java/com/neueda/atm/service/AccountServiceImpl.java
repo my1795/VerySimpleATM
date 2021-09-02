@@ -12,6 +12,8 @@ import com.neueda.atm.resource.AccountResponse;
 import com.neueda.atm.resource.BankNoteResource;
 import com.neueda.atm.util.BalanceUtil;
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class AccountServiceImpl implements AccountService {
+    private static final Logger logger = LogManager.getLogger(AccountServiceImpl.class);
     private static String REQUEST_TYPE_ERROR = "Incompatible Request Type";
     AccountRepository accountRepository;
 
@@ -48,6 +51,7 @@ public class AccountServiceImpl implements AccountService {
         accountResponse.setRequestType(RequestType.BALANCE_CHECK);
         accountResponse.setBalance(accountEntity.getBalance());
         accountResponse.setOverdraft(accountEntity.getOverdraft());
+        accountResponse.setMaximumWithdrawalAmount(accountEntity.getBalance()+accountEntity.getOverdraft());
         return accountResponse;
     }
 
@@ -75,13 +79,12 @@ public class AccountServiceImpl implements AccountService {
                 }
             });
             bank.setBalanceMap(bankBalance);
-            if(accountEntity.getBalance() >= withdrawAmount.get()){
+            if (accountEntity.getBalance() >= withdrawAmount.get()) {
                 accountEntity.setBalance(accountEntity.getBalance() - withdrawAmount.get());
-            }
-            else {
+            } else {
                 double deductedFromOverdraft = withdrawAmount.get() - accountEntity.getBalance();
                 accountEntity.setBalance(0);
-                accountEntity.setOverdraft(accountEntity.getOverdraft()-deductedFromOverdraft);
+                accountEntity.setOverdraft(accountEntity.getOverdraft() - deductedFromOverdraft);
             }
 
 
@@ -118,9 +121,14 @@ public class AccountServiceImpl implements AccountService {
         basicAccountResourceCheck(accountRequest, accountEntity);
 
         if (accountRequest.getRequestAmount() > atmService.getATMBalance()) {
+            logger.error("Withdraw request rejected. ATM balance : {} account withdraw request : {} accountNumber : {}", atmService.getATMBalance(), accountRequest.getRequestAmount(),
+                    accountRequest.getAccountNumber());
             throw new UnsupportedOperationException("Withdraw amount cannot exceed atm balance.");
         }
         if (accountRequest.getRequestAmount() > accountEntity.getBalance() + accountEntity.getOverdraft()) {
+            logger.error("Withdraw request rejected.Account Balance + overdraft is not enough Account balance : {} account overdraft : {} " +
+                            "account withdraw request : {} accountNumber : {}", accountEntity.getBalance(),
+                    accountEntity.getOverdraft(), accountRequest.getRequestAmount(), accountRequest.getAccountNumber());
             throw new UnsupportedOperationException("Account does not have enough credits");
         }
 
@@ -128,9 +136,11 @@ public class AccountServiceImpl implements AccountService {
 
     private void basicAccountResourceCheck(AccountRequest accountRequest, AccountEntity accountEntity) throws EntityNotFoundException, SecurityException {
         if (accountEntity == null) {
+            logger.error("Account entity is not found by accountNumber : {}", accountRequest.getAccountNumber());
             throw new EntityNotFoundException("Account entity is not found with specified attributes");
         }
         if (accountEntity.getPin() != accountRequest.getPin()) {
+            logger.error("Incorrect pin is provided for accountNumber : {}", accountRequest.getAccountNumber());
             throw new SecurityException("Given pin does not match with the account");
         }
     }
