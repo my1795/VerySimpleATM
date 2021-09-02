@@ -13,12 +13,16 @@
     </Appenders>
 
     <Loggers>
-        <AsyncLogger name="com.neueda.atm" level="all"
-                     additivity="false">
+        <logger name="com.neueda.atm" level="all" additivity="false">
+            <AppenderRef ref="ConsoleAppender"/>
+        </logger>
+        <logger name="com.spring" level="trace" additivity="false">
+            <AppenderRef ref="ConsoleAppender"/>
+        </logger>
+        <logger name="org.hibernate" additivity="false" level="error">
             <AppenderRef ref="ConsoleAppender" />
-        </AsyncLogger>
-        <Root level="all">
-            <AppenderRef ref="ConsoleAppender" />
+        </logger>
+        <Root level="error">
         </Root>
     </Loggers>
 </Configuration>

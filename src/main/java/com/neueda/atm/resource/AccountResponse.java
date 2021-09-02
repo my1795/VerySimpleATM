@@ -9,15 +9,18 @@ import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AccountResponse  implements Serializable {
+public class AccountResponse implements Serializable {
     private RequestType requestType;
     private long accountNumber;
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private double remainingBalance;
-
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private double balance;
 
     private double overdraft;
+
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+    private double maximumWithdrawalAmount;
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     List<BankNoteResource> withdrawalBankNotes;
 
@@ -62,11 +65,32 @@ public class AccountResponse  implements Serializable {
         this.overdraft = overdraft;
     }
 
+    public double getMaximumWithdrawalAmount() {
+        return maximumWithdrawalAmount;
+    }
+
+    public void setMaximumWithdrawalAmount(double maximumWithdrawalAmount) {
+        this.maximumWithdrawalAmount = maximumWithdrawalAmount;
+    }
+
     public List<BankNoteResource> getWithdrawalBankNotes() {
         return withdrawalBankNotes;
     }
 
     public void setWithdrawalBankNotes(List<BankNoteResource> withdrawalBankNotes) {
         this.withdrawalBankNotes = withdrawalBankNotes;
+    }
+
+    @Override
+    public String toString() {
+        return "AccountResponse{" +
+                "requestType=" + requestType +
+                ", accountNumber=" + accountNumber +
+                ", remainingBalance=" + remainingBalance +
+                ", balance=" + balance +
+                ", overdraft=" + overdraft +
+                ", maximumWithdrawalAmount=" + maximumWithdrawalAmount +
+                ", withdrawalBankNotes=" + withdrawalBankNotes +
+                '}';
     }
 }
