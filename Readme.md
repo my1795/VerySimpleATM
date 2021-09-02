@@ -56,6 +56,7 @@ open index.hmtl
 ```
 ## Docker
 Dockerfile is provided. You can run the app inside of a container 
+prerequisite mvn install (In order to get jar)
 To do this you need to build the image first:
 ```sh
 docker build -t verysimpleatm:0.1 . 
